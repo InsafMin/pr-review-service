@@ -2,19 +2,17 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: pr-review-postgres
-    env_file:
-      - .env
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:-prservice_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-prservice_password}
+      POSTGRES_DB: ${DB_NAME:-prservice}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "${DB_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-prservice_user} -d ${DB_NAME:-prservice}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,14 +24,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: pr-review-service
-    env_file:
-      - .env
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER:-prservice_user}
+      DB_PASSWORD: ${DB_PASSWORD:-prservice_password}
+      DB_NAME: ${DB_NAME:-prservice}
       SERVER_PORT: 8080
       LOG_LEVEL: ${LOG_LEVEL:-info}
     ports:
